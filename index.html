@@ -1051,13 +1051,26 @@ function renderSettings() {
       <span class="setting-dot" style="background:${color}"></span>
       <span class="setting-label">${formatWeight(weight)} kg</span>
       <div class="setting-controls">
-        <button class="setting-adj" onclick="adjustInventory(${weight}, -1)">−</button>
-        <span class="${valueClass}" onclick="toggleUnlimited(${weight})">${display}</span>
-        <button class="setting-adj" onclick="adjustInventory(${weight}, 1)">+</button>
+        <button class="setting-adj" type="button" data-w="${weight}" data-d="-1">−</button>
+        <span class="${valueClass}" data-w="${weight}" data-toggle="1">${display}</span>
+        <button class="setting-adj" type="button" data-w="${weight}" data-d="1">+</button>
       </div>
     </div>`;
   }).join('');
 }
+
+// Event delegation for settings buttons — avoids inline onclick on rebuilt innerHTML
+settingsList.addEventListener('click', e => {
+  const adj = e.target.closest('.setting-adj');
+  if (adj) {
+    adjustInventory(parseFloat(adj.dataset.w), parseInt(adj.dataset.d));
+    return;
+  }
+  const val = e.target.closest('[data-toggle]');
+  if (val) {
+    toggleUnlimited(parseFloat(val.dataset.w));
+  }
+});
 
 function adjustInventory(weight, delta) {
   const current = plateInventory[weight];
