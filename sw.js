@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barbell-calc-v6';
+const CACHE_NAME = 'barbell-calc-v7';
 const ASSETS = [
   '/barbell-calc/',
   '/barbell-calc/index.html',
