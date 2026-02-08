@@ -1,10 +1,10 @@
-const CACHE_NAME = 'barbell-calc-v3';
+const CACHE_NAME = 'barbell-calc-v4';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/barbell-calc/',
+  '/barbell-calc/index.html',
+  '/barbell-calc/manifest.json',
+  '/barbell-calc/icon-192.png',
+  '/barbell-calc/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
