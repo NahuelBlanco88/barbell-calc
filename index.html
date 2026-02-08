@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Barbell">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Barbell Calculator</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #16161e;
+  --surface2: #1e1e2a;
+  --border: #2a2a3a;
+  --text: #e8e8f0;
+  --text-dim: #8888a0;
+  --accent: #6c7aff;
+  --accent-glow: rgba(108, 122, 255, 0.15);
+
+  --plate-red: #d42b2b;
+  --plate-blue: #2b5fd4;
+  --plate-yellow: #d4c12b;
+  --plate-green: #2bb84d;
+  --plate-white: #e8e8e8;
+  --plate-silver: #a0a0b0;
+  --plate-dark: #555566;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* === TOTAL WEIGHT DISPLAY === */
+.total-section {
+  text-align: center;
+  padding: 24px 16px 8px;
+  flex-shrink: 0;
+}
+
+.total-weight {
+  font-size: 72px;
+  font-weight: 800;
+  letter-spacing: -3px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #ffffff 0%, #b0b0d0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.total-unit {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  color: var(--text-dim);
+  margin-left: 2px;
+}
+
+.total-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* === BAR SELECTOR === */
+.bar-selector {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 12px 16px;
+  flex-shrink: 0;
+}
+
+.bar-btn {
+  flex: 1;
+  max-width: 160px;
+  padding: 10px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bar-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  color: var(--text);
+  box-shadow: 0 0 20px rgba(108, 122, 255, 0.1);
+}
+
+.bar-btn span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+/* === BARBELL VISUAL === */
+.barbell-container {
+  padding: 16px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.barbell-container::-webkit-scrollbar {
+  display: none;
+}
+
+.barbell-svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* === PER-SIDE BREAKDOWN === */
+.breakdown {
+  padding: 4px 16px 8px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.breakdown-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.breakdown-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.breakdown-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--surface2);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.breakdown-chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.breakdown-chip .count {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.breakdown-empty {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* === PLATE BUTTONS === */
+.plates-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  min-height: 0;
+}
+
+.plates-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.plate-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 4px 8px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  min-height: 60px;
+}
+
+.plate-btn:active {
+  transform: scale(0.94);
+}
+
+.plate-btn .plate-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.plate-btn .plate-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s;
+}
+
+.plate-btn .plate-count.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.plate-btn.has-plates {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* colored top border for competition plates */
+.plate-btn[data-weight="25"]  { border-top: 3px solid var(--plate-red); }
+.plate-btn[data-weight="20"]  { border-top: 3px solid var(--plate-blue); }
+.plate-btn[data-weight="15"]  { border-top: 3px solid var(--plate-yellow); }
+.plate-btn[data-weight="10"]  { border-top: 3px solid var(--plate-green); }
+.plate-btn[data-weight="5"]   { border-top: 3px solid var(--plate-white); }
+
+/* === ACTIONS === */
+.actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  padding-bottom: calc(12px + var(--safe-bottom));
+  flex-shrink: 0;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-btn:active {
+  transform: scale(0.96);
+}
+
+.action-btn.clear {
+  border-color: #d42b2b33;
+  color: #ff6b6b;
+}
+
+.action-btn.undo {
+  border-color: var(--border);
+}
+
+/* === ANIMATIONS === */
+@keyframes bump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.total-weight.bump {
+  animation: bump 0.2s ease;
+}
+</style>
+</head>
+<body>
+
+<!-- Total Weight -->
+<div class="total-section">
+  <div>
+    <span class="total-weight" id="totalWeight">20</span>
+    <span class="total-unit">kg</span>
+  </div>
+  <div class="total-label">Total weight</div>
+</div>
+
+<!-- Bar Selector -->
+<div class="bar-selector">
+  <button class="bar-btn active" data-bar="20" onclick="setBar(20)">
+    20 kg
+    <span>Men's bar</span>
+  </button>
+  <button class="bar-btn" data-bar="15" onclick="setBar(15)">
+    15 kg
+    <span>Women's bar</span>
+  </button>
+</div>
+
+<!-- Barbell Visual -->
+<div class="barbell-container">
+  <svg id="barbellSvg" class="barbell-svg" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<!-- Per-side Breakdown -->
+<div class="breakdown">
+  <div class="breakdown-title">Per side</div>
+  <div class="breakdown-list" id="breakdownList">
+    <div class="breakdown-empty">Bar only</div>
+  </div>
+</div>
+
+<!-- Plate Buttons -->
+<div class="plates-section">
+  <div class="plates-grid" id="platesGrid"></div>
+</div>
+
+<!-- Actions -->
+<div class="actions">
+  <button class="action-btn undo" onclick="undoPlate()">Undo</button>
+  <button class="action-btn clear" onclick="clearPlates()">Clear All</button>
+</div>
+
+<script>
+// ── State ──
+const PLATES = [25, 20, 15, 10, 5, 2.5, 2, 1.25, 0.75, 0.5];
+const PLATE_COLORS = {
+  25:   { fill: '#d42b2b', stroke: '#a02020', label: '#fff' },
+  20:   { fill: '#2b5fd4', stroke: '#1e44a0', label: '#fff' },
+  15:   { fill: '#d4c12b', stroke: '#a09020', label: '#333' },
+  10:   { fill: '#2bb84d', stroke: '#1e8838', label: '#fff' },
+  5:    { fill: '#e8e8e8', stroke: '#b0b0b0', label: '#333' },
+  2.5:  { fill: '#d42b2b', stroke: '#a02020', label: '#fff' },
+  2:    { fill: '#2b5fd4', stroke: '#1e44a0', label: '#fff' },
+  1.25: { fill: '#d4c12b', stroke: '#a09020', label: '#333' },
+  0.75: { fill: '#2bb84d', stroke: '#1e8838', label: '#fff' },
+  0.5:  { fill: '#e8e8e8', stroke: '#b0b0b0', label: '#333' },
+};
+
+// Plate sizes (heights in SVG units) - bigger plates are taller
+const PLATE_HEIGHTS = {
+  25: 80, 20: 74, 15: 68, 10: 56, 5: 46,
+  2.5: 38, 2: 34, 1.25: 30, 0.75: 26, 0.5: 22
+};
+
+const PLATE_WIDTHS = {
+  25: 12, 20: 12, 15: 10, 10: 10, 5: 8,
+  2.5: 6, 2: 6, 1.25: 5, 0.75: 5, 0.5: 4
+};
+
+let barWeight = 20;
+let addedPlates = []; // ordered history of plates added (per side)
+let plateCountsPerSide = {};
+PLATES.forEach(p => plateCountsPerSide[p] = 0);
+
+// ── UI Refs ──
+const totalWeightEl = document.getElementById('totalWeight');
+const breakdownListEl = document.getElementById('breakdownList');
+const barbellSvg = document.getElementById('barbellSvg');
+const platesGridEl = document.getElementById('platesGrid');
+
+// ── Initialize plate buttons ──
+function buildPlateButtons() {
+  platesGridEl.innerHTML = '';
+  PLATES.forEach(weight => {
+    const btn = document.createElement('button');
+    btn.className = 'plate-btn';
+    btn.dataset.weight = weight;
+    btn.onclick = () => addPlate(weight);
+    const display = weight % 1 === 0 ? weight.toString() : weight.toFixed(weight >= 1 ? 1 : 2);
+    btn.innerHTML = `
+      ${display}
+      <span class="plate-label">kg</span>
+      <span class="plate-count" id="count-${weight.toString().replace('.', '_')}">0</span>
+    `;
+    platesGridEl.appendChild(btn);
+  });
+}
+
+// ── Bar selection ──
+function setBar(weight) {
+  barWeight = weight;
+  document.querySelectorAll('.bar-btn').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.bar) === weight);
+  });
+  updateDisplay();
+}
+
+// ── Plate management ──
+function addPlate(weight) {
+  addedPlates.push(weight);
+  plateCountsPerSide[weight]++;
+  updateDisplay();
+}
+
+function undoPlate() {
+  if (addedPlates.length === 0) return;
+  const last = addedPlates.pop();
+  plateCountsPerSide[last]--;
+  updateDisplay();
+}
+
+function clearPlates() {
+  addedPlates = [];
+  PLATES.forEach(p => plateCountsPerSide[p] = 0);
+  updateDisplay();
+}
+
+// ── Update everything ──
+function updateDisplay() {
+  // Total
+  const perSide = addedPlates.reduce((s, p) => s + p, 0);
+  const total = barWeight + perSide * 2;
+  const display = total % 1 === 0 ? total.toString() : total.toFixed(total % 0.5 === 0 ? 1 : 2);
+  totalWeightEl.textContent = display;
+  totalWeightEl.classList.remove('bump');
+  void totalWeightEl.offsetWidth; // reflow
+  totalWeightEl.classList.add('bump');
+
+  // Plate button counts
+  PLATES.forEach(weight => {
+    const id = 'count-' + weight.toString().replace('.', '_');
+    const countEl = document.getElementById(id);
+    const count = plateCountsPerSide[weight];
+    const totalCount = count * 2;
+    countEl.textContent = totalCount;
+    countEl.classList.toggle('visible', count > 0);
+    countEl.closest('.plate-btn').classList.toggle('has-plates', count > 0);
+  });
+
+  // Breakdown
+  updateBreakdown();
+
+  // Barbell graphic
+  drawBarbell();
+}
+
+// ── Per-side breakdown ──
+function updateBreakdown() {
+  const groups = [];
+  PLATES.forEach(weight => {
+    const count = plateCountsPerSide[weight];
+    if (count > 0) {
+      groups.push({ weight, count });
+    }
+  });
+
+  if (groups.length === 0) {
+    breakdownListEl.innerHTML = '<div class="breakdown-empty">Bar only</div>';
+    return;
+  }
+
+  breakdownListEl.innerHTML = groups.map(g => {
+    const color = PLATE_COLORS[g.weight].fill;
+    const label = g.weight % 1 === 0 ? g.weight : g.weight.toFixed(g.weight >= 1 ? 1 : 2);
+    return `<div class="breakdown-chip">
+      <span class="dot" style="background:${color}"></span>
+      ${label}kg
+      <span class="count">&times;${g.count}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Draw barbell SVG ──
+function drawBarbell() {
+  // Sorted plates for display: heaviest closest to center
+  const sortedPlates = [];
+  PLATES.forEach(weight => {
+    for (let i = 0; i < plateCountsPerSide[weight]; i++) {
+      sortedPlates.push(weight);
+    }
+  });
+  // sortedPlates is already heaviest-first since PLATES is ordered desc
+
+  // Calculate needed width
+  const platesTotalWidth = sortedPlates.reduce((s, w) => s + PLATE_WIDTHS[w] + 2, 0);
+  const barMinHalf = 60; // minimum half-bar length
+  const sleeveLen = Math.max(platesTotalWidth + 20, 50);
+  const collarW = 6;
+  const shaftHalf = 60;
+  const halfWidth = shaftHalf + collarW + sleeveLen + 10;
+  const totalW = halfWidth * 2;
+  const cy = 50; // center y
+
+  barbellSvg.setAttribute('viewBox', `0 0 ${totalW} 100`);
+  const cx = totalW / 2;
+
+  let svg = '';
+
+  // Defs for gradients
+  svg += `<defs>
+    <linearGradient id="steelGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#888"/>
+      <stop offset="30%" stop-color="#ccc"/>
+      <stop offset="50%" stop-color="#ddd"/>
+      <stop offset="70%" stop-color="#bbb"/>
+      <stop offset="100%" stop-color="#777"/>
+    </linearGradient>
+    <linearGradient id="sleeveGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#999"/>
+      <stop offset="25%" stop-color="#d0d0d0"/>
+      <stop offset="50%" stop-color="#e0e0e0"/>
+      <stop offset="75%" stop-color="#c0c0c0"/>
+      <stop offset="100%" stop-color="#888"/>
+    </linearGradient>
+    <linearGradient id="knurlGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#666"/>
+      <stop offset="30%" stop-color="#aaa"/>
+      <stop offset="50%" stop-color="#bbb"/>
+      <stop offset="70%" stop-color="#999"/>
+      <stop offset="100%" stop-color="#555"/>
+    </linearGradient>
+    <pattern id="knurlPattern" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="4" y2="4" stroke="#00000020" stroke-width="0.5"/>
+      <line x1="4" y1="0" x2="0" y2="4" stroke="#00000020" stroke-width="0.5"/>
+    </pattern>
+  </defs>`;
+
+  const barH = 8; // shaft height
+  const sleeveH = 14; // sleeve height
+
+  // ── Draw shaft (center) with knurling ──
+  // Main shaft
+  svg += `<rect x="${cx - shaftHalf}" y="${cy - barH/2}" width="${shaftHalf * 2}" height="${barH}" rx="1" fill="url(#steelGrad)"/>`;
+
+  // Knurling zones (two zones on each side of center)
+  const knurlZones = [
+    [cx - shaftHalf + 6, cx - 14],
+    [cx + 14, cx + shaftHalf - 6],
+  ];
+  knurlZones.forEach(([x1, x2]) => {
+    svg += `<rect x="${x1}" y="${cy - barH/2}" width="${x2 - x1}" height="${barH}" rx="0" fill="url(#knurlGrad)"/>`;
+    svg += `<rect x="${x1}" y="${cy - barH/2}" width="${x2 - x1}" height="${barH}" rx="0" fill="url(#knurlPattern)"/>`;
+  });
+
+  // Center knurl mark
+  svg += `<rect x="${cx - 0.75}" y="${cy - barH/2 - 0.5}" width="1.5" height="${barH + 1}" fill="#666" rx="0.5"/>`;
+
+  // ── Draw both sides ──
+  for (const side of [-1, 1]) {
+    const dir = side; // -1 = left, 1 = right
+
+    // Collar (transition from shaft to sleeve)
+    const collarX = cx + dir * shaftHalf;
+    const collarDrawX = dir === 1 ? collarX : collarX - collarW;
+    svg += `<rect x="${collarDrawX}" y="${cy - sleeveH/2 - 2}" width="${collarW}" height="${sleeveH + 4}" rx="1.5" fill="url(#steelGrad)" stroke="#666" stroke-width="0.5"/>`;
+
+    // Sleeve
+    const sleeveStart = cx + dir * (shaftHalf + collarW);
+    const sleeveDrawX = dir === 1 ? sleeveStart : sleeveStart - sleeveLen;
+    svg += `<rect x="${sleeveDrawX}" y="${cy - sleeveH/2}" width="${sleeveLen}" height="${sleeveH}" rx="1" fill="url(#sleeveGrad)" stroke="#999" stroke-width="0.3"/>`;
+
+    // Sleeve rotation lines (subtle grooves)
+    const grooveStart = dir === 1 ? sleeveStart + 3 : sleeveStart - sleeveLen + 3;
+    for (let i = 0; i < sleeveLen - 6; i += 3) {
+      svg += `<line x1="${grooveStart + i}" y1="${cy - sleeveH/2}" x2="${grooveStart + i}" y2="${cy + sleeveH/2}" stroke="#b0b0b0" stroke-width="0.2" opacity="0.5"/>`;
+    }
+
+    // End cap
+    const capX = cx + dir * (shaftHalf + collarW + sleeveLen);
+    const capDrawX = dir === 1 ? capX : capX - 4;
+    svg += `<rect x="${capDrawX}" y="${cy - sleeveH/2 - 1}" width="4" height="${sleeveH + 2}" rx="1.5" fill="#777" stroke="#666" stroke-width="0.5"/>`;
+
+    // ── Draw plates on this side ──
+    let plateX = cx + dir * (shaftHalf + collarW + 4); // start after collar
+    sortedPlates.forEach((weight, i) => {
+      const ph = PLATE_HEIGHTS[weight];
+      const pw = PLATE_WIDTHS[weight];
+      const colors = PLATE_COLORS[weight];
+
+      const drawX = dir === 1 ? plateX : plateX - pw;
+
+      // Plate shadow
+      svg += `<rect x="${drawX + 1}" y="${cy - ph/2 + 1}" width="${pw}" height="${ph}" rx="2" fill="rgba(0,0,0,0.3)"/>`;
+
+      // Main plate body
+      svg += `<rect x="${drawX}" y="${cy - ph/2}" width="${pw}" height="${ph}" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="0.8"/>`;
+
+      // Plate highlight
+      svg += `<rect x="${drawX + 1}" y="${cy - ph/2 + 1}" width="${pw - 2}" height="${ph/3}" rx="1" fill="rgba(255,255,255,0.15)"/>`;
+
+      // Inner hub circle (for big plates)
+      if (weight >= 10) {
+        const hubR = 6;
+        const hubCx = drawX + pw / 2;
+        svg += `<circle cx="${hubCx}" cy="${cy}" r="${hubR}" fill="none" stroke="${colors.stroke}" stroke-width="0.6" opacity="0.5"/>`;
+        svg += `<circle cx="${hubCx}" cy="${cy}" r="3" fill="${colors.stroke}" opacity="0.3"/>`;
+      }
+
+      // Weight text (only on bigger plates)
+      if (pw >= 8) {
+        const textX = drawX + pw / 2;
+        const fontSize = weight >= 10 ? 6 : 5;
+        const label = weight % 1 === 0 ? weight : weight.toFixed(1);
+        svg += `<text x="${textX}" y="${cy + fontSize/3}" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="${colors.label}" opacity="0.8" font-family="system-ui">${label}</text>`;
+      }
+
+      plateX += dir * (pw + 2);
+    });
+
+    // Spring collar after plates
+    if (sortedPlates.length > 0) {
+      const collarClipX = plateX;
+      const ccDrawX = dir === 1 ? collarClipX : collarClipX - 5;
+      svg += `<rect x="${ccDrawX}" y="${cy - 10}" width="5" height="20" rx="1.5" fill="#555" stroke="#444" stroke-width="0.5"/>`;
+      // Clip ridges
+      for (let r = 0; r < 3; r++) {
+        svg += `<line x1="${ccDrawX}" y1="${cy - 7 + r * 7}" x2="${ccDrawX + 5}" y2="${cy - 7 + r * 7}" stroke="#666" stroke-width="0.5"/>`;
+      }
+    }
+  }
+
+  barbellSvg.innerHTML = svg;
+}
+
+// ── Init ──
+buildPlateButtons();
+updateDisplay();
+
+// ── Service Worker Registration ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
