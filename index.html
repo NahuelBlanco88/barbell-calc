@@ -32,8 +32,6 @@
   --plate-yellow: #d4c12b;
   --plate-green: #2bb84d;
   --plate-white: #e8e8e8;
-  --plate-silver: #a0a0b0;
-  --plate-dark: #555566;
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -61,6 +59,7 @@ body {
   text-align: center;
   padding: 24px 16px 8px;
   flex-shrink: 0;
+  position: relative;
 }
 
 .total-weight {
@@ -89,6 +88,41 @@ body {
   margin-top: 4px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+}
+
+/* Gear button */
+.gear-btn {
+  position: absolute;
+  top: 20px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+
+.gear-btn:active {
+  transform: scale(0.9);
+  background: var(--border);
+}
+
+.gear-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.gear-btn.has-limits {
+  color: var(--accent);
 }
 
 /* === BAR SELECTOR === */
@@ -240,6 +274,13 @@ body {
   margin-bottom: 6px;
 }
 
+.breakdown-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  opacity: 0.6;
+  margin-bottom: 6px;
+}
+
 .breakdown-list {
   display: flex;
   flex-wrap: wrap;
@@ -256,6 +297,16 @@ body {
   background: var(--surface2);
   font-size: 13px;
   font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+  border: 1.5px solid transparent;
+}
+
+.breakdown-chip:active {
+  transform: scale(0.92);
+  border-color: #ff6b6b88;
+  background: #ff6b6b18;
 }
 
 .breakdown-chip .dot {
@@ -281,7 +332,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 8px 12px;
+  padding: 8px 12px 0;
   min-height: 0;
 }
 
@@ -289,7 +340,6 @@ body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  margin-bottom: 8px;
 }
 
 .plate-btn {
@@ -312,7 +362,7 @@ body {
   min-height: 60px;
 }
 
-.plate-btn:active {
+.plate-btn:active:not(.at-limit) {
   transform: scale(0.94);
 }
 
@@ -353,6 +403,11 @@ body {
   background: var(--accent-glow);
 }
 
+.plate-btn.at-limit {
+  opacity: 0.35;
+  cursor: default;
+}
+
 /* colored top border for competition plates */
 .plate-btn[data-weight="25"]  { border-top: 3px solid var(--plate-red); }
 .plate-btn[data-weight="20"]  { border-top: 3px solid var(--plate-blue); }
@@ -364,7 +419,7 @@ body {
 .actions {
   display: flex;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 16px 12px;
   padding-bottom: calc(12px + var(--safe-bottom));
   flex-shrink: 0;
 }
@@ -396,6 +451,174 @@ body {
   border-color: var(--border);
 }
 
+/* === SETTINGS OVERLAY === */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.settings-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.settings-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px;
+  padding-bottom: calc(20px + var(--safe-bottom));
+  max-height: 80vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-overlay.open .settings-panel {
+  transform: translateY(0);
+}
+
+.settings-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin: 0 auto 16px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.settings-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.settings-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.settings-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.setting-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.setting-label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.setting-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.setting-adj {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.1s;
+}
+
+.setting-adj:active {
+  transform: scale(0.9);
+  background: var(--surface2);
+}
+
+.setting-value {
+  width: 36px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.setting-value.unlimited {
+  color: var(--text-dim);
+}
+
+.settings-reset {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.settings-reset:active {
+  transform: scale(0.98);
+}
+
 /* === ANIMATIONS === */
 @keyframes bump {
   0% { transform: scale(1); }
@@ -412,6 +635,9 @@ body {
 
 <!-- Total Weight -->
 <div class="total-section">
+  <button class="gear-btn" id="gearBtn" onclick="openSettings()" aria-label="Plate inventory setup">
+    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z"/></svg>
+  </button>
   <div>
     <span class="total-weight" id="totalWeight">20</span>
     <span class="total-unit">kg</span>
@@ -464,6 +690,20 @@ body {
   <button class="action-btn clear" onclick="clearPlates()">Clear All</button>
 </div>
 
+<!-- Settings Overlay -->
+<div class="settings-overlay" id="settingsOverlay" onclick="handleOverlayClick(event)">
+  <div class="settings-panel" onclick="event.stopPropagation()">
+    <div class="settings-handle"></div>
+    <div class="settings-header">
+      <span class="settings-title">Plate Inventory</span>
+      <button class="settings-close" onclick="closeSettings()">&times;</button>
+    </div>
+    <div class="settings-desc">Set how many of each plate your gym has (total count across both sides). Tap a number to toggle unlimited.</div>
+    <div class="settings-list" id="settingsList"></div>
+    <button class="settings-reset" onclick="resetInventory()">Reset All to Unlimited</button>
+  </div>
+</div>
+
 <script>
 // ── State ──
 const PLATES = [25, 20, 15, 10, 5, 2.5, 2, 1.25, 0.75, 0.5];
@@ -495,6 +735,12 @@ let addedPlates = [];
 let plateCountsPerSide = {};
 PLATES.forEach(p => plateCountsPerSide[p] = 0);
 
+// Plate inventory: null = unlimited, number = total plates in gym
+let plateInventory = {};
+PLATES.forEach(p => plateInventory[p] = null);
+
+const STORAGE_KEY = 'barbell-calc-inventory';
+
 // ── UI Refs ──
 const totalWeightEl = document.getElementById('totalWeight');
 const breakdownListEl = document.getElementById('breakdownList');
@@ -502,14 +748,44 @@ const barbellSvg = document.getElementById('barbellSvg');
 const platesGridEl = document.getElementById('platesGrid');
 const targetInput = document.getElementById('targetInput');
 const targetMessageEl = document.getElementById('targetMessage');
+const settingsOverlay = document.getElementById('settingsOverlay');
+const settingsList = document.getElementById('settingsList');
+const gearBtn = document.getElementById('gearBtn');
 
 // ── Format weight without rounding errors ──
-// All plate weights are exact in base-10, so String() gives the right result.
-// For computed totals we round to 2 decimal places then strip trailing zeros.
 function formatWeight(w) {
   const rounded = Math.round(w * 100) / 100;
   if (rounded % 1 === 0) return rounded.toString();
   return parseFloat(rounded.toFixed(2)).toString();
+}
+
+// ── Inventory persistence ──
+function loadInventory() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      PLATES.forEach(p => {
+        const key = String(p);
+        if (key in parsed) plateInventory[p] = parsed[key];
+      });
+    }
+  } catch (e) {}
+}
+
+function saveInventory() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plateInventory));
+  } catch (e) {}
+}
+
+function maxPerSide(weight) {
+  const inv = plateInventory[weight];
+  return inv === null ? Infinity : Math.floor(inv / 2);
+}
+
+function hasAnyLimits() {
+  return PLATES.some(p => plateInventory[p] !== null);
 }
 
 // ── Initialize plate buttons ──
@@ -541,8 +817,22 @@ function setBar(weight) {
 
 // ── Plate management ──
 function addPlate(weight) {
+  if (plateCountsPerSide[weight] >= maxPerSide(weight)) return;
   addedPlates.push(weight);
   plateCountsPerSide[weight]++;
+  clearTargetMessage();
+  updateDisplay();
+}
+
+function removePlate(weight) {
+  if (plateCountsPerSide[weight] <= 0) return;
+  for (let i = addedPlates.length - 1; i >= 0; i--) {
+    if (addedPlates[i] === weight) {
+      addedPlates.splice(i, 1);
+      break;
+    }
+  }
+  plateCountsPerSide[weight]--;
   clearTargetMessage();
   updateDisplay();
 }
@@ -577,8 +867,16 @@ function updateDisplay() {
     const count = plateCountsPerSide[weight];
     countEl.textContent = count * 2;
     countEl.classList.toggle('visible', count > 0);
-    countEl.closest('.plate-btn').classList.toggle('has-plates', count > 0);
+
+    const btn = countEl.closest('.plate-btn');
+    btn.classList.toggle('has-plates', count > 0);
+
+    const atLimit = count >= maxPerSide(weight);
+    btn.classList.toggle('at-limit', atLimit);
+    btn.disabled = atLimit;
   });
+
+  gearBtn.classList.toggle('has-limits', hasAnyLimits());
 
   updateBreakdown();
   drawBarbell();
@@ -599,7 +897,7 @@ function updateBreakdown() {
 
   breakdownListEl.innerHTML = groups.map(g => {
     const color = PLATE_COLORS[g.weight].fill;
-    return `<div class="breakdown-chip">
+    return `<div class="breakdown-chip" onclick="removePlate(${g.weight})" title="Tap to remove one">
       <span class="dot" style="background:${color}"></span>
       ${formatWeight(g.weight)}kg
       <span class="count">&times;${g.count}</span>
@@ -618,54 +916,63 @@ function showTargetMessage(text, type) {
   targetMessageEl.className = 'target-message ' + type;
 }
 
-// Coin-change via BFS to find fewest plates that reach a target per-side weight.
-// Weights are converted to quarter-kg integers to avoid floating point issues.
+// Bounded coin-change DP: respects per-side plate inventory limits.
+// Converts weights to quarter-kg integers to avoid floating point.
 function solvePlatesForTarget(targetPerSide) {
   if (targetPerSide < 0.001) return { plates: [], exact: true, actualPerSide: 0 };
 
   const PLATE_Q = PLATES.map(p => Math.round(p * 4));
   const targetQ = Math.round(targetPerSide * 4);
-  const maxQ = targetQ + 8; // allow up to 2kg overshoot to find closest
+  const maxQ = targetQ + 8;
 
-  // BFS: from[w] = plate index used, prev[w] = previous weight
-  const from = new Int16Array(maxQ + 1).fill(-1);
-  const prev = new Int32Array(maxQ + 1).fill(-1);
-  const visited = new Uint8Array(maxQ + 1);
-  visited[0] = 1;
+  const limits = PLATES.map((p, i) => {
+    const m = maxPerSide(p);
+    return m === Infinity ? Math.floor(maxQ / PLATE_Q[i]) + 1 : m;
+  });
 
-  const queue = [0];
-  let qi = 0;
+  // dp[w] = min plates to reach weight w; parent[w] for traceback
+  const dp = new Array(maxQ + 1).fill(Infinity);
+  const parent = new Array(maxQ + 1).fill(null);
+  dp[0] = 0;
 
-  while (qi < queue.length) {
-    const w = queue[qi++];
-    for (let j = 0; j < PLATE_Q.length; j++) {
-      const next = w + PLATE_Q[j];
-      if (next <= maxQ && !visited[next]) {
-        visited[next] = 1;
-        from[next] = j;
-        prev[next] = w;
-        queue.push(next);
+  for (let i = 0; i < PLATES.length; i++) {
+    const pq = PLATE_Q[i];
+    const limit = limits[i];
+    if (limit === 0 || pq === 0) continue;
+
+    // Snapshot before processing this plate type
+    const prevDp = dp.slice();
+    const prevParent = parent.slice();
+
+    for (let w = 0; w <= maxQ; w++) {
+      if (prevDp[w] === Infinity) continue;
+      for (let k = 1; k <= limit; k++) {
+        const nw = w + k * pq;
+        if (nw > maxQ) break;
+        const cost = prevDp[w] + k;
+        if (cost < dp[nw]) {
+          dp[nw] = cost;
+          parent[nw] = { idx: i, count: k, prev: w };
+        }
       }
     }
   }
 
-  // Find closest reachable weight to targetQ
   let bestQ = -1;
   for (let delta = 0; delta <= maxQ; delta++) {
-    const over = targetQ + delta;
     const under = targetQ - delta;
-    if (under >= 0 && visited[under]) { bestQ = under; break; }
-    if (over <= maxQ && visited[over]) { bestQ = over; break; }
+    const over = targetQ + delta;
+    if (under >= 0 && dp[under] < Infinity) { bestQ = under; break; }
+    if (over <= maxQ && dp[over] < Infinity) { bestQ = over; break; }
   }
 
   if (bestQ <= 0) return { plates: [], exact: targetQ === 0, actualPerSide: 0 };
 
-  // Trace back to recover plate list
   const plates = [];
   let w = bestQ;
-  while (w > 0 && from[w] !== -1) {
-    plates.push(PLATES[from[w]]);
-    w = prev[w];
+  while (w > 0 && parent[w]) {
+    for (let k = 0; k < parent[w].count; k++) plates.push(PLATES[parent[w].idx]);
+    w = parent[w].prev;
   }
 
   return {
@@ -699,7 +1006,6 @@ function calculateTarget() {
   const targetPerSide = (targetTotal - barWeight) / 2;
   const result = solvePlatesForTarget(targetPerSide);
 
-  // Load computed plates onto the bar
   addedPlates = [];
   PLATES.forEach(p => plateCountsPerSide[p] = 0);
   result.plates.forEach(p => {
@@ -716,7 +1022,6 @@ function calculateTarget() {
   }
 }
 
-// Allow Enter key in the target input
 targetInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -724,6 +1029,77 @@ targetInput.addEventListener('keydown', e => {
     targetInput.blur();
   }
 });
+
+// ── Settings panel ──
+function openSettings() {
+  renderSettings();
+  settingsOverlay.classList.add('open');
+}
+
+function closeSettings() {
+  settingsOverlay.classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === settingsOverlay) closeSettings();
+}
+
+function renderSettings() {
+  settingsList.innerHTML = PLATES.map(weight => {
+    const color = PLATE_COLORS[weight].fill;
+    const inv = plateInventory[weight];
+    const isUnlimited = inv === null;
+    const valueClass = isUnlimited ? 'setting-value unlimited' : 'setting-value';
+    const display = isUnlimited ? '∞' : inv;
+    return `<div class="setting-row">
+      <span class="setting-dot" style="background:${color}"></span>
+      <span class="setting-label">${formatWeight(weight)} kg</span>
+      <div class="setting-controls">
+        <button class="setting-adj" onclick="adjustInventory(${weight}, -2)">−</button>
+        <span class="${valueClass}" onclick="toggleUnlimited(${weight})">${display}</span>
+        <button class="setting-adj" onclick="adjustInventory(${weight}, 2)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adjustInventory(weight, delta) {
+  const current = plateInventory[weight];
+  if (current === null) {
+    if (delta < 0) {
+      plateInventory[weight] = 10;
+    }
+    // + on unlimited stays unlimited
+  } else {
+    const newVal = current + delta;
+    if (newVal < 0) {
+      plateInventory[weight] = null;
+    } else {
+      plateInventory[weight] = newVal;
+    }
+  }
+  saveInventory();
+  renderSettings();
+  updateDisplay();
+}
+
+function toggleUnlimited(weight) {
+  if (plateInventory[weight] === null) {
+    plateInventory[weight] = 10;
+  } else {
+    plateInventory[weight] = null;
+  }
+  saveInventory();
+  renderSettings();
+  updateDisplay();
+}
+
+function resetInventory() {
+  PLATES.forEach(p => plateInventory[p] = null);
+  saveInventory();
+  renderSettings();
+  updateDisplay();
+}
 
 // ── Draw barbell SVG ──
 function drawBarbell() {
@@ -778,10 +1154,8 @@ function drawBarbell() {
   const barH = 8;
   const sleeveH = 14;
 
-  // Main shaft
   svg += `<rect x="${cx - shaftHalf}" y="${cy - barH/2}" width="${shaftHalf * 2}" height="${barH}" rx="1" fill="url(#steelGrad)"/>`;
 
-  // Knurling zones
   const knurlZones = [
     [cx - shaftHalf + 6, cx - 14],
     [cx + 14, cx + shaftHalf - 6],
@@ -791,41 +1165,37 @@ function drawBarbell() {
     svg += `<rect x="${x1}" y="${cy - barH/2}" width="${x2 - x1}" height="${barH}" rx="0" fill="url(#knurlPattern)"/>`;
   });
 
-  // Center knurl mark
   svg += `<rect x="${cx - 0.75}" y="${cy - barH/2 - 0.5}" width="1.5" height="${barH + 1}" fill="#666" rx="0.5"/>`;
 
-  // Draw both sides
   for (const side of [-1, 1]) {
     const dir = side;
 
-    // Collar
     const collarX = cx + dir * shaftHalf;
     const collarDrawX = dir === 1 ? collarX : collarX - collarW;
     svg += `<rect x="${collarDrawX}" y="${cy - sleeveH/2 - 2}" width="${collarW}" height="${sleeveH + 4}" rx="1.5" fill="url(#steelGrad)" stroke="#666" stroke-width="0.5"/>`;
 
-    // Sleeve
     const sleeveStart = cx + dir * (shaftHalf + collarW);
     const sleeveDrawX = dir === 1 ? sleeveStart : sleeveStart - sleeveLen;
     svg += `<rect x="${sleeveDrawX}" y="${cy - sleeveH/2}" width="${sleeveLen}" height="${sleeveH}" rx="1" fill="url(#sleeveGrad)" stroke="#999" stroke-width="0.3"/>`;
 
-    // Sleeve grooves
     const grooveStart = dir === 1 ? sleeveStart + 3 : sleeveStart - sleeveLen + 3;
     for (let i = 0; i < sleeveLen - 6; i += 3) {
       svg += `<line x1="${grooveStart + i}" y1="${cy - sleeveH/2}" x2="${grooveStart + i}" y2="${cy + sleeveH/2}" stroke="#b0b0b0" stroke-width="0.2" opacity="0.5"/>`;
     }
 
-    // End cap
     const capX = cx + dir * (shaftHalf + collarW + sleeveLen);
     const capDrawX = dir === 1 ? capX : capX - 4;
     svg += `<rect x="${capDrawX}" y="${cy - sleeveH/2 - 1}" width="4" height="${sleeveH + 2}" rx="1.5" fill="#777" stroke="#666" stroke-width="0.5"/>`;
 
-    // Plates
     let plateX = cx + dir * (shaftHalf + collarW + 4);
     sortedPlates.forEach(weight => {
       const ph = PLATE_HEIGHTS[weight];
       const pw = PLATE_WIDTHS[weight];
       const colors = PLATE_COLORS[weight];
       const drawX = dir === 1 ? plateX : plateX - pw;
+
+      // Clickable plate group
+      svg += `<g data-plate-weight="${weight}" style="cursor:pointer">`;
 
       svg += `<rect x="${drawX + 1}" y="${cy - ph/2 + 1}" width="${pw}" height="${ph}" rx="2" fill="rgba(0,0,0,0.3)"/>`;
       svg += `<rect x="${drawX}" y="${cy - ph/2}" width="${pw}" height="${ph}" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="0.8"/>`;
@@ -843,10 +1213,14 @@ function drawBarbell() {
         svg += `<text x="${textX}" y="${cy + fontSize/3}" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="${colors.label}" opacity="0.8" font-family="system-ui">${formatWeight(weight)}</text>`;
       }
 
+      // Invisible hit area for easier tapping
+      svg += `<rect x="${drawX - 3}" y="${cy - ph/2 - 3}" width="${pw + 6}" height="${ph + 6}" fill="transparent"/>`;
+
+      svg += `</g>`;
+
       plateX += dir * (pw + 2);
     });
 
-    // Spring collar after plates
     if (sortedPlates.length > 0) {
       const ccDrawX = dir === 1 ? plateX : plateX - 5;
       svg += `<rect x="${ccDrawX}" y="${cy - 10}" width="5" height="20" rx="1.5" fill="#555" stroke="#444" stroke-width="0.5"/>`;
@@ -859,7 +1233,16 @@ function drawBarbell() {
   barbellSvg.innerHTML = svg;
 }
 
+// SVG plate click handler (event delegation)
+barbellSvg.addEventListener('click', e => {
+  const g = e.target.closest('[data-plate-weight]');
+  if (g) {
+    removePlate(parseFloat(g.dataset.plateWeight));
+  }
+});
+
 // ── Init ──
+loadInventory();
 buildPlateButtons();
 updateDisplay();
 
