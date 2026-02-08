@@ -51,7 +51,7 @@ body {
   padding-bottom: var(--safe-bottom);
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 0;
 }
 
 /* === TOTAL WEIGHT DISPLAY === */
@@ -329,11 +329,7 @@ body {
 
 /* === PLATE BUTTONS === */
 .plates-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   padding: 8px 12px 0;
-  min-height: 0;
 }
 
 .plates-grid {
@@ -1055,9 +1051,9 @@ function renderSettings() {
       <span class="setting-dot" style="background:${color}"></span>
       <span class="setting-label">${formatWeight(weight)} kg</span>
       <div class="setting-controls">
-        <button class="setting-adj" onclick="adjustInventory(${weight}, -2)">−</button>
+        <button class="setting-adj" onclick="adjustInventory(${weight}, -1)">−</button>
         <span class="${valueClass}" onclick="toggleUnlimited(${weight})">${display}</span>
-        <button class="setting-adj" onclick="adjustInventory(${weight}, 2)">+</button>
+        <button class="setting-adj" onclick="adjustInventory(${weight}, 1)">+</button>
       </div>
     </div>`;
   }).join('');
@@ -1066,14 +1062,12 @@ function renderSettings() {
 function adjustInventory(weight, delta) {
   const current = plateInventory[weight];
   if (current === null) {
-    if (delta < 0) {
-      plateInventory[weight] = 10;
-    }
-    // + on unlimited stays unlimited
+    // Either +/- from unlimited enters number mode at 0
+    plateInventory[weight] = 0;
   } else {
     const newVal = current + delta;
     if (newVal < 0) {
-      plateInventory[weight] = null;
+      plateInventory[weight] = null; // back to unlimited
     } else {
       plateInventory[weight] = newVal;
     }
@@ -1085,7 +1079,7 @@ function adjustInventory(weight, delta) {
 
 function toggleUnlimited(weight) {
   if (plateInventory[weight] === null) {
-    plateInventory[weight] = 10;
+    plateInventory[weight] = 0;
   } else {
     plateInventory[weight] = null;
   }
