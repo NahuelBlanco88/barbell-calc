@@ -698,7 +698,7 @@ body {
     </div>
     <div class="settings-desc">Set how many of each plate your gym has (total count across both sides). Tap a number to toggle unlimited.</div>
     <div class="settings-list" id="settingsList"></div>
-    <button class="settings-reset" onclick="resetInventory()">Reset All to Unlimited</button>
+    <button class="settings-reset" id="settingsReset">Reset All</button>
   </div>
 </div>
 
@@ -1049,16 +1049,28 @@ function renderSettings() {
     const isUnlimited = inv === null;
     const valueClass = isUnlimited ? 'setting-value unlimited' : 'setting-value';
     const display = isUnlimited ? '∞' : inv;
+    const vid = 'inv-' + weight.toString().replace('.', '_');
     return `<div class="setting-row">
       <span class="setting-dot" style="background:${color}"></span>
       <span class="setting-label">${formatWeight(weight)} kg</span>
       <div class="setting-controls">
         <button class="setting-adj" type="button" data-w="${weight}" data-d="-1">−</button>
-        <span class="${valueClass}" data-w="${weight}" data-toggle="1">${display}</span>
+        <span class="${valueClass}" id="${vid}" data-w="${weight}" data-toggle="1">${display}</span>
         <button class="setting-adj" type="button" data-w="${weight}" data-d="1">+</button>
       </div>
     </div>`;
   }).join('');
+}
+
+// Update a single setting value without rebuilding the whole list
+function updateSettingValue(weight) {
+  const vid = 'inv-' + weight.toString().replace('.', '_');
+  const el = document.getElementById(vid);
+  if (!el) return;
+  const inv = plateInventory[weight];
+  const isUnlimited = inv === null;
+  el.textContent = isUnlimited ? '∞' : inv;
+  el.className = isUnlimited ? 'setting-value unlimited' : 'setting-value';
 }
 
 // Event delegation for settings buttons — avoids inline onclick on rebuilt innerHTML
@@ -1088,7 +1100,7 @@ function adjustInventory(weight, delta) {
     }
   }
   saveInventory();
-  renderSettings();
+  updateSettingValue(weight);
   updateDisplay();
 }
 
@@ -1099,7 +1111,7 @@ function toggleUnlimited(weight) {
     plateInventory[weight] = null;
   }
   saveInventory();
-  renderSettings();
+  updateSettingValue(weight);
   updateDisplay();
 }
 
@@ -1109,6 +1121,9 @@ function resetInventory() {
   renderSettings();
   updateDisplay();
 }
+
+// Reset button — direct listener instead of inline onclick (mobile Safari fix)
+document.getElementById('settingsReset').addEventListener('click', resetInventory);
 
 // ── Draw barbell SVG ──
 function drawBarbell() {
