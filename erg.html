@@ -215,6 +215,44 @@ body {
   background: var(--accent-glow);
 }
 
+/* === MACHINE SELECTOR === */
+.machine-selector {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  flex-shrink: 0;
+}
+
+.machine-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.machine-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  color: var(--text);
+  box-shadow: 0 0 20px rgba(108, 122, 255, 0.1);
+}
+
+.machine-btn span {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
 /* === DIVIDER === */
 .divider {
   height: 1px;
@@ -378,6 +416,22 @@ body {
     <div class="page-subtitle">Concept2 Performance</div>
   </div>
   <div class="header-spacer"></div>
+</div>
+
+<!-- Machine Selector -->
+<div class="machine-selector">
+  <button class="machine-btn active" data-machine="row" onclick="setMachine('row')">
+    RowErg
+    <span>Rowing</span>
+  </button>
+  <button class="machine-btn" data-machine="ski" onclick="setMachine('ski')">
+    SkiErg
+    <span>Skiing</span>
+  </button>
+  <button class="machine-btn" data-machine="bike" onclick="setMachine('bike')">
+    BikeErg
+    <span>Cycling</span>
+  </button>
 </div>
 
 <!-- Scrollable form + results -->
@@ -575,7 +629,9 @@ function splitFromTimeAndDistance(timeSec, distM) {
 }
 
 function caloriesPerHourFromWatts(watts) {
-  return watts * 4 + 300;
+  // BikeErg uses a 2x multiplier; RowErg and SkiErg use 4x
+  const multiplier = machineType === 'bike' ? 2 : 4;
+  return watts * multiplier + 300;
 }
 
 function totalCaloriesFromCalHrAndTime(calHr, timeSec) {
@@ -585,7 +641,9 @@ function totalCaloriesFromCalHrAndTime(calHr, timeSec) {
 function trueCalHrFromPmCalHr(pmCalHr, bodyweightKg) {
   // Convert kg to lb internally
   const bodyweightLb = bodyweightKg * 2.20462;
-  return pmCalHr - 300 + (1.714 * bodyweightLb);
+  // BikeErg bodyweight factor differs due to higher mechanical efficiency
+  const bwFactor = machineType === 'bike' ? 1.5 : 1.714;
+  return pmCalHr - 300 + (bwFactor * bodyweightLb);
 }
 
 // ── Calculation paths ──
@@ -617,7 +675,8 @@ function calcFromWatts(watts) {
 }
 
 function calcFromCalHr(calHr) {
-  const watts = (calHr - 300) / 4;
+  const multiplier = machineType === 'bike' ? 2 : 4;
+  const watts = (calHr - 300) / multiplier;
   if (watts <= 0) return null;
   const splitSec = splitFromWatts(watts);
   return { calHr, watts, splitSec };
@@ -625,10 +684,25 @@ function calcFromCalHr(calHr) {
 
 function calcFromTimeAndCal(timeSec, totalCal) {
   const calHr = totalCal * 3600 / timeSec;
-  const watts = (calHr - 300) / 4;
+  const multiplier = machineType === 'bike' ? 2 : 4;
+  const watts = (calHr - 300) / multiplier;
   if (watts <= 0) return null;
   const splitSec = splitFromWatts(watts);
   return { timeSec, totalCal, calHr, watts, splitSec };
+}
+
+// ── Machine state ──
+
+let machineType = 'row';
+
+function setMachine(m) {
+  machineType = m;
+  document.querySelectorAll('.machine-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.machine === m);
+  });
+  // Clear results when machine changes — formulas differ
+  document.getElementById('resultsSection').classList.add('hidden');
+  clearError();
 }
 
 // ── Bodyweight unit state ──
