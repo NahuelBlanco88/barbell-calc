@@ -310,8 +310,15 @@ body {
   font-size: 13px;
   font-weight: 500;
   color: #ff6b6b;
-  padding: 6px 0 2px;
+  padding: 6px 0 0;
   min-height: 20px;
+}
+
+.error-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 2px 0 4px;
 }
 
 /* === RESULTS === */
@@ -459,14 +466,14 @@ body {
     <span class="input-unit"></span>
   </div>
 
-  <!-- Split -->
+  <!-- Pace -->
   <div class="input-row">
     <label class="input-label" for="inpSplit">
-      Split
-      <span class="input-hint">/500m</span>
+      Pace
+      <span class="input-hint" id="paceHint">/500m</span>
     </label>
     <input type="text" id="inpSplit" class="erg-input" placeholder="1:52" inputmode="text" autocomplete="off" autocorrect="off">
-    <span class="input-unit">/500m</span>
+    <span class="input-unit" id="paceUnit">/500m</span>
   </div>
 
   <!-- Watts -->
@@ -521,6 +528,7 @@ body {
 
   <!-- Error -->
   <div class="error-msg hidden" id="errorMsg"></div>
+  <div class="error-hint hidden" id="errorHint"></div>
 
   <!-- Results -->
   <div class="results-section hidden" id="resultsSection">
@@ -700,6 +708,10 @@ function setMachine(m) {
   document.querySelectorAll('.machine-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.machine === m);
   });
+  // Update pace unit label in the input form
+  var paceUnit = m === 'bike' ? '/1000m' : '/500m';
+  document.getElementById('paceHint').textContent = paceUnit;
+  document.getElementById('paceUnit').textContent = paceUnit;
   // Clear results when machine changes — formulas differ
   document.getElementById('resultsSection').classList.add('hidden');
   clearError();
@@ -718,17 +730,24 @@ function toggleBWUnit() {
 
 // ── Error / results display ──
 
-function showError(msg) {
+function showError(msg, hint) {
   const el = document.getElementById('errorMsg');
   el.textContent = msg;
   el.classList.remove('hidden');
+  const hintEl = document.getElementById('errorHint');
+  if (hint) {
+    hintEl.textContent = hint;
+    hintEl.classList.remove('hidden');
+  } else {
+    hintEl.classList.add('hidden');
+  }
   document.getElementById('resultsSection').classList.add('hidden');
 }
 
 function clearError() {
-  const el = document.getElementById('errorMsg');
-  el.textContent = '';
-  el.classList.add('hidden');
+  document.getElementById('errorMsg').textContent = '';
+  document.getElementById('errorMsg').classList.add('hidden');
+  document.getElementById('errorHint').classList.add('hidden');
 }
 
 // ── Main calculate ──
@@ -760,8 +779,9 @@ function calculate() {
 
   if (splitRaw) {
     const r = parseSplitInput(splitRaw);
-    if (r === 'invalid') { showError('Split format must be m:ss (e.g. 1:52)'); return; }
-    splitSec = r;
+    if (r === 'invalid') { showError('Pace format must be m:ss (e.g. 1:52)'); return; }
+    // BikeErg pace is per 1000m; convert to internal /500m representation
+    splitSec = machineType === 'bike' ? r / 2 : r;
   }
 
   if (wattsRaw) {
@@ -806,7 +826,7 @@ function calculate() {
     result = calcFromTimeAndCal(timeSec, totalCal);
     if (!result) { showError('Time + Calories combination results in zero or negative watts'); return; }
   } else {
-    showError('Enter Distance + Split, Time + Distance, Watts only, Cal/hour only, or Time + Calories');
+    showError('Enter at least two inputs', 'Examples: Distance + Time, Distance + Pace, Watts, or Cal/hr');
     return;
   }
 
@@ -838,7 +858,10 @@ function displayResults(r) {
     perfCards.push({ label: 'Distance', value: Math.round(r.distM).toLocaleString(), unit: 'm', highlight: false });
   }
   if (r.splitSec !== undefined) {
-    perfCards.push({ label: 'Split /500m', value: formatSplit(r.splitSec), unit: '', highlight: true });
+    // BikeErg displays pace per 1000m; scale internal /500m value accordingly
+    var paceDisplaySec = machineType === 'bike' ? r.splitSec * 2 : r.splitSec;
+    var paceLabel = machineType === 'bike' ? 'Pace /1000m' : 'Pace /500m';
+    perfCards.push({ label: paceLabel, value: formatSplit(paceDisplaySec), unit: '', highlight: true });
   }
   if (r.watts !== undefined) {
     perfCards.push({ label: 'Watts', value: Math.round(r.watts), unit: 'W', highlight: true });
