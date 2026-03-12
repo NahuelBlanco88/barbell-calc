@@ -617,32 +617,48 @@ body {
   transform: scale(0.98);
 }
 
-/* === NAV BUTTON === */
-.nav-btn {
-  position: absolute;
-  top: 20px;
-  left: 12px;
-  width: 40px;
-  height: 40px;
-  border: 1.5px solid rgba(108, 122, 255, 0.5);
-  border-radius: 50%;
-  background: var(--accent-glow);
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
+/* === TOP NAV === */
+.top-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s;
-  text-decoration: none;
-  letter-spacing: -0.3px;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
-.nav-btn:active {
-  transform: scale(0.9);
-  background: var(--border);
+.nav-brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2px;
+}
+
+.nav-link {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.nav-link:active {
+  opacity: 0.7;
 }
 
 /* === ANIMATIONS === */
@@ -659,9 +675,19 @@ body {
 </head>
 <body>
 
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <span class="nav-brand">WOD Tools</span>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">Barbell</a>
+    <a href="erg.html" class="nav-link">Erg</a>
+    <a href="percent.html" class="nav-link">Percent</a>
+    <a href="onerm.html" class="nav-link">1RM</a>
+  </div>
+</nav>
+
 <!-- Total Weight -->
 <div class="total-section">
-  <a class="nav-btn" href="erg.html" aria-label="Erg Performance Calculator">ERG</a>
   <button class="gear-btn" id="gearBtn" onclick="openSettings()" aria-label="Plate inventory setup">
     <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z"/></svg>
   </button>
@@ -1298,6 +1324,16 @@ barbellSvg.addEventListener('click', e => {
 loadInventory();
 buildPlateButtons();
 updateDisplay();
+
+// ── Read ?weight= URL param to pre-fill target weight ──
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const w = params.get('weight');
+  if (w) {
+    targetInput.value = w;
+    calculateTarget();
+  }
+})();
 
 // ── Service Worker Registration ──
 if ('serviceWorker' in navigator) {

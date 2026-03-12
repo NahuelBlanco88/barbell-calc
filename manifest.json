@@ -1,7 +1,7 @@
 {
-  "name": "Barbell Calculator",
-  "short_name": "Barbell",
-  "description": "Mobile barbell weight plate calculator",
+  "name": "WOD Tools",
+  "short_name": "WOD Tools",
+  "description": "Barbell calculator, erg performance, percentage training, and 1RM estimator",
   "start_url": "/barbell-calc/index.html",
   "scope": "/barbell-calc/",
   "display": "standalone",

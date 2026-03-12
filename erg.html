@@ -45,63 +45,48 @@ body {
   min-height: 0;
 }
 
-/* === PAGE HEADER === */
-.page-header {
+/* === TOP NAV === */
+.top-nav {
   display: flex;
   align-items: center;
-  padding: 16px 16px 12px;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  position: relative;
 }
 
-.back-btn {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  background: var(--surface2);
-  color: var(--text-dim);
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s;
-  text-decoration: none;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.back-btn:active {
-  transform: scale(0.9);
-  background: var(--border);
-}
-
-.header-titles {
-  flex: 1;
-  text-align: center;
-  padding: 0 8px 0 8px;
-}
-
-.page-title {
-  font-size: 18px;
+.nav-brand {
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-.page-subtitle {
-  font-size: 11px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-top: 2px;
-}
-
-/* Spacer to balance back button */
-.header-spacer {
-  width: 40px;
+  color: var(--accent);
+  letter-spacing: 0.3px;
   flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2px;
+}
+
+.nav-link {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.nav-link:active {
+  opacity: 0.7;
 }
 
 /* === SCROLL AREA === */
@@ -415,15 +400,16 @@ body {
 </head>
 <body>
 
-<!-- Page Header -->
-<div class="page-header">
-  <a class="back-btn" href="index.html" aria-label="Back to Barbell Calculator">&#8592;</a>
-  <div class="header-titles">
-    <div class="page-title">Erg Calculator</div>
-    <div class="page-subtitle">Concept2 Performance</div>
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <span class="nav-brand">WOD Tools</span>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Barbell</a>
+    <a href="erg.html" class="nav-link active">Erg</a>
+    <a href="percent.html" class="nav-link">Percent</a>
+    <a href="onerm.html" class="nav-link">1RM</a>
   </div>
-  <div class="header-spacer"></div>
-</div>
+</nav>
 
 <!-- Machine Selector -->
 <div class="machine-selector">
