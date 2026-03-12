@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>1RM Calculator – WOD Tools</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #16161e;
+  --surface2: #1e1e2a;
+  --border: #2a2a3a;
+  --text: #e8e8f0;
+  --text-dim: #8888a0;
+  --accent: #6c7aff;
+  --accent-glow: rgba(108, 122, 255, 0.15);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* === TOP NAV === */
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.nav-brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2px;
+}
+
+.nav-link {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.nav-link:active {
+  opacity: 0.7;
+}
+
+/* === SCROLL AREA === */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 16px 16px;
+}
+
+/* === SECTION LABEL === */
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin: 20px 0 8px;
+}
+
+.section-label:first-child {
+  margin-top: 8px;
+}
+
+/* === INPUT === */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.calc-input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  outline: none;
+  -webkit-appearance: none;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-input::placeholder {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.calc-input:focus {
+  border-color: var(--accent);
+}
+
+.input-unit-label {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-weight: 500;
+  min-width: 28px;
+}
+
+/* === REPS GRID === */
+.reps-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.rep-btn {
+  padding: 14px 4px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+}
+
+.rep-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  color: var(--text);
+  box-shadow: 0 0 16px rgba(108, 122, 255, 0.1);
+}
+
+.rep-btn:active:not(.active) {
+  transform: scale(0.96);
+  background: var(--surface2);
+}
+
+/* === RESULT DISPLAY === */
+.result-display {
+  text-align: center;
+  padding: 28px 16px 8px;
+}
+
+.result-weight {
+  font-size: 72px;
+  font-weight: 800;
+  letter-spacing: -3px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #ffffff 0%, #b0b0d0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.result-weight.empty {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: var(--text-dim);
+  background-clip: unset;
+}
+
+.result-unit {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  color: var(--text-dim);
+  margin-left: 2px;
+}
+
+.result-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.result-formula {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 8px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* === USE AS 1RM BUTTON === */
+.send-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  margin-top: 20px;
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  background: var(--accent-glow);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.send-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.send-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+}
+</style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <span class="nav-brand">WOD Tools</span>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Barbell</a>
+    <a href="erg.html" class="nav-link">Erg</a>
+    <a href="percent.html" class="nav-link">Percent</a>
+    <a href="onerm.html" class="nav-link active">1RM</a>
+  </div>
+</nav>
+
+<div class="scroll-area">
+
+  <!-- Weight Input -->
+  <div class="section-label">Weight Lifted</div>
+  <div class="input-row">
+    <input type="number" id="weightInput" class="calc-input" placeholder="e.g. 100" inputmode="decimal" min="0" step="0.5">
+    <span class="input-unit-label">kg</span>
+  </div>
+
+  <!-- Reps Selector -->
+  <div class="section-label">Repetitions</div>
+  <div class="reps-grid" id="repsGrid"></div>
+
+  <!-- Result Display -->
+  <div class="result-display">
+    <span class="result-weight empty" id="resultWeight">—</span>
+    <span class="result-unit" id="resultUnit" style="visibility:hidden">kg</span>
+    <div class="result-label">Estimated 1RM</div>
+    <div class="result-formula">Epley: weight × (1 + reps ÷ 30), rounded to 0.5 kg</div>
+  </div>
+
+  <!-- Use as 1RM -->
+  <button class="send-btn" id="useBtn" disabled onclick="useAsOnerm()">
+    Use as 1RM
+  </button>
+
+</div>
+
+<script>
+let selectedReps = 5;
+let estimated1RM = null;
+
+// ── Build reps buttons (1–10) ──
+const repsGrid = document.getElementById('repsGrid');
+for (let r = 1; r <= 10; r++) {
+  const btn = document.createElement('button');
+  btn.className = 'rep-btn' + (r === selectedReps ? ' active' : '');
+  btn.dataset.reps = r;
+  btn.textContent = r;
+  btn.onclick = () => selectReps(r);
+  repsGrid.appendChild(btn);
+}
+
+function selectReps(r) {
+  selectedReps = r;
+  document.querySelectorAll('.rep-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.reps) === r);
+  });
+  calculate();
+}
+
+function roundHalf(n) {
+  return Math.round(n * 2) / 2;
+}
+
+function calculate() {
+  const w = parseFloat(document.getElementById('weightInput').value);
+  const resultWeightEl = document.getElementById('resultWeight');
+  const resultUnitEl = document.getElementById('resultUnit');
+  const useBtn = document.getElementById('useBtn');
+
+  if (isNaN(w) || w <= 0) {
+    resultWeightEl.textContent = '—';
+    resultWeightEl.classList.add('empty');
+    resultUnitEl.style.visibility = 'hidden';
+    useBtn.disabled = true;
+    estimated1RM = null;
+    return;
+  }
+
+  estimated1RM = roundHalf(w * (1 + selectedReps / 30));
+  resultWeightEl.textContent = estimated1RM;
+  resultWeightEl.classList.remove('empty');
+  resultUnitEl.style.visibility = 'visible';
+  useBtn.disabled = false;
+}
+
+function useAsOnerm() {
+  if (estimated1RM === null) return;
+  window.location.href = 'percent.html?rm=' + estimated1RM;
+}
+
+document.getElementById('weightInput').addEventListener('input', calculate);
+document.getElementById('weightInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); calculate(); }
+});
+
+// ── Service Worker Registration ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
