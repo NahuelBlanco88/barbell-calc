@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>Erg Calculator</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #16161e;
+  --surface2: #1e1e2a;
+  --border: #2a2a3a;
+  --text: #e8e8f0;
+  --text-dim: #8888a0;
+  --accent: #6c7aff;
+  --accent-glow: rgba(108, 122, 255, 0.15);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* === PAGE HEADER === */
+.page-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 16px 12px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+  text-decoration: none;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.back-btn:active {
+  transform: scale(0.9);
+  background: var(--border);
+}
+
+.header-titles {
+  flex: 1;
+  text-align: center;
+  padding: 0 8px 0 8px;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 2px;
+}
+
+/* Spacer to balance back button */
+.header-spacer {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+/* === SCROLL AREA === */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 16px 16px;
+}
+
+/* === SECTION LABEL === */
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin: 16px 0 8px;
+}
+
+.section-label:first-child {
+  margin-top: 4px;
+}
+
+.section-optional {
+  font-size: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+/* === INPUT ROWS === */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.input-label {
+  width: 86px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.input-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 400;
+  display: block;
+}
+
+.erg-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  -webkit-appearance: none;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.erg-input::placeholder {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.erg-input:focus {
+  border-color: var(--accent);
+}
+
+.input-unit {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+  min-width: 44px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+/* === UNIT TOGGLE === */
+.unit-toggle {
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.unit-toggle:active {
+  transform: scale(0.95);
+}
+
+.unit-toggle.kg-active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--accent-glow);
+}
+
+/* === DIVIDER === */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* === ACTIONS === */
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.calc-btn {
+  flex: 2;
+  padding: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  background: var(--accent-glow);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+
+.calc-btn:active {
+  transform: scale(0.96);
+}
+
+.reset-btn {
+  flex: 1;
+  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+
+.reset-btn:active {
+  transform: scale(0.96);
+}
+
+/* === ERROR MESSAGE === */
+.error-msg {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ff6b6b;
+  padding: 6px 0 2px;
+  min-height: 20px;
+}
+
+/* === RESULTS === */
+.results-section {
+  margin-top: 16px;
+}
+
+.results-group-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.results-group-title.metabolic {
+  margin-top: 16px;
+  color: #2bb84d;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 12px 10px;
+}
+
+.result-card.highlight {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.result-card.metabolic {
+  border-color: rgba(43, 184, 77, 0.25);
+  background: rgba(43, 184, 77, 0.07);
+}
+
+.result-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.result-value {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.result-unit {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Metabolic disclaimer note */
+.metabolic-note {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 12px;
+  line-height: 1.5;
+  font-style: italic;
+  padding: 0 4px;
+}
+
+/* Erg calories disclaimer */
+.erg-note {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 10px;
+  line-height: 1.5;
+  font-style: italic;
+  padding: 0 4px;
+}
+
+/* hidden utility */
+.hidden {
+  display: none !important;
+}
+</style>
+</head>
+<body>
+
+<!-- Page Header -->
+<div class="page-header">
+  <a class="back-btn" href="index.html" aria-label="Back to Barbell Calculator">&#8592;</a>
+  <div class="header-titles">
+    <div class="page-title">Erg Calculator</div>
+    <div class="page-subtitle">Concept2 Performance</div>
+  </div>
+  <div class="header-spacer"></div>
+</div>
+
+<!-- Scrollable form + results -->
+<div class="scroll-area">
+
+  <div class="section-label">Performance Inputs</div>
+
+  <!-- Distance -->
+  <div class="input-row">
+    <label class="input-label" for="inpDist">
+      Distance
+      <span class="input-hint">meters</span>
+    </label>
+    <input type="number" id="inpDist" class="erg-input" placeholder="e.g. 2000" inputmode="decimal" min="0">
+    <span class="input-unit">m</span>
+  </div>
+
+  <!-- Time -->
+  <div class="input-row">
+    <label class="input-label" for="inpTime">
+      Time
+      <span class="input-hint">mm:ss</span>
+    </label>
+    <input type="text" id="inpTime" class="erg-input" placeholder="7:30" inputmode="text" autocomplete="off" autocorrect="off">
+    <span class="input-unit"></span>
+  </div>
+
+  <!-- Split -->
+  <div class="input-row">
+    <label class="input-label" for="inpSplit">
+      Split
+      <span class="input-hint">/500m</span>
+    </label>
+    <input type="text" id="inpSplit" class="erg-input" placeholder="1:52" inputmode="text" autocomplete="off" autocorrect="off">
+    <span class="input-unit">/500m</span>
+  </div>
+
+  <!-- Watts -->
+  <div class="input-row">
+    <label class="input-label" for="inpWatts">
+      Watts
+    </label>
+    <input type="number" id="inpWatts" class="erg-input" placeholder="e.g. 175" inputmode="decimal" min="0">
+    <span class="input-unit">W</span>
+  </div>
+
+  <!-- Cal/hour -->
+  <div class="input-row">
+    <label class="input-label" for="inpCalHr">
+      Cal / hour
+    </label>
+    <input type="number" id="inpCalHr" class="erg-input" placeholder="e.g. 1000" inputmode="decimal" min="0">
+    <span class="input-unit">cal/hr</span>
+  </div>
+
+  <!-- Total Calories -->
+  <div class="input-row">
+    <label class="input-label" for="inpCal">
+      Calories
+      <span class="input-hint">total</span>
+    </label>
+    <input type="number" id="inpCal" class="erg-input" placeholder="e.g. 100" inputmode="decimal" min="0">
+    <span class="input-unit">cal</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-label">
+    Bodyweight
+    <span class="section-optional">(optional — for true metabolic calories)</span>
+  </div>
+
+  <!-- Bodyweight -->
+  <div class="input-row">
+    <label class="input-label" for="inpBW">
+      Bodyweight
+    </label>
+    <input type="number" id="inpBW" class="erg-input" placeholder="e.g. 80" inputmode="decimal" min="0">
+    <button class="unit-toggle kg-active" id="bwUnitToggle" onclick="toggleBWUnit()">kg</button>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="calc-btn" onclick="calculate()">Calculate</button>
+    <button class="reset-btn" onclick="resetForm()">Reset</button>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg hidden" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="results-section hidden" id="resultsSection">
+    <div class="results-group-title" id="perfGroupTitle">Erg Performance (Monitor Calories)</div>
+    <div class="results-grid" id="perfGrid"></div>
+    <div class="erg-note" id="ergNote">
+      Erg calories are performance calories from the monitor, not actual human calorie burn.
+    </div>
+    <div class="results-group-title metabolic hidden" id="metaGroupTitle">True Metabolic Calories</div>
+    <div class="results-grid hidden" id="metaGrid"></div>
+    <div class="metabolic-note hidden" id="metaNote">
+      Estimated from bodyweight. Accounts for resting metabolic rate and actual energy expenditure.
+    </div>
+  </div>
+
+</div><!-- end scroll-area -->
+
+<script>
+// ── Parsing ──
+
+function parseTimeInput(str) {
+  if (!str || !str.trim()) return null;
+  str = str.trim();
+  const parts = str.split(':');
+  if (parts.length === 2) {
+    const m = parseInt(parts[0], 10);
+    const s = parseFloat(parts[1]);
+    if (isNaN(m) || isNaN(s) || m < 0 || s < 0 || s >= 60) return 'invalid';
+    return m * 60 + s;
+  } else if (parts.length === 3) {
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const s = parseFloat(parts[2]);
+    if (isNaN(h) || isNaN(m) || isNaN(s) || h < 0 || m < 0 || m >= 60 || s < 0 || s >= 60) return 'invalid';
+    return h * 3600 + m * 60 + s;
+  }
+  return 'invalid';
+}
+
+function parseSplitInput(str) {
+  if (!str || !str.trim()) return null;
+  str = str.trim();
+  const parts = str.split(':');
+  if (parts.length === 2) {
+    const m = parseInt(parts[0], 10);
+    const s = parseFloat(parts[1]);
+    if (isNaN(m) || isNaN(s) || m < 0 || s < 0 || s >= 60) return 'invalid';
+    const sec = m * 60 + s;
+    if (sec <= 0) return 'invalid';
+    return sec;
+  }
+  return 'invalid';
+}
+
+// ── Formatting ──
+
+function formatTime(timeSec) {
+  if (timeSec === null || timeSec === undefined || isNaN(timeSec)) return '—';
+  const total = Math.round(timeSec);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h > 0) {
+    return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function formatSplit(splitSec) {
+  if (splitSec === null || splitSec === undefined || isNaN(splitSec)) return '—';
+  // Use integer tenths to avoid floating-point display issues
+  const totalTenths = Math.round(splitSec * 10);
+  const m = Math.floor(totalTenths / 600);
+  const remaining = totalTenths % 600;
+  const s = Math.floor(remaining / 10);
+  const d = remaining % 10;
+  return m + ':' + String(s).padStart(2, '0') + '.' + d;
+}
+
+// ── Core formulas ──
+
+function wattsFromSplit(splitSec500) {
+  // pace_per_meter = splitSec500 / 500
+  // watts = 2.80 / (pace_per_meter ^ 3)
+  const pacePerMeter = splitSec500 / 500;
+  return 2.80 / Math.pow(pacePerMeter, 3);
+}
+
+function splitFromWatts(watts) {
+  // pace_per_meter = (2.80 / watts) ^ (1/3)
+  // split_sec_500 = pace_per_meter * 500
+  const pacePerMeter = Math.pow(2.80 / watts, 1 / 3);
+  return pacePerMeter * 500;
+}
+
+function timeFromDistanceAndSplit(distM, splitSec500) {
+  return distM * splitSec500 / 500;
+}
+
+function distanceFromTimeAndSplit(timeSec, splitSec500) {
+  return timeSec * 500 / splitSec500;
+}
+
+function splitFromTimeAndDistance(timeSec, distM) {
+  return timeSec * 500 / distM;
+}
+
+function caloriesPerHourFromWatts(watts) {
+  return watts * 4 + 300;
+}
+
+function totalCaloriesFromCalHrAndTime(calHr, timeSec) {
+  return calHr * timeSec / 3600;
+}
+
+function trueCalHrFromPmCalHr(pmCalHr, bodyweightKg) {
+  // Convert kg to lb internally
+  const bodyweightLb = bodyweightKg * 2.20462;
+  return pmCalHr - 300 + (1.714 * bodyweightLb);
+}
+
+// ── Calculation paths ──
+
+function calcFromDistanceAndSplit(distM, splitSec) {
+  const timeSec = timeFromDistanceAndSplit(distM, splitSec);
+  const watts = wattsFromSplit(splitSec);
+  const calHr = caloriesPerHourFromWatts(watts);
+  const totalCal = totalCaloriesFromCalHrAndTime(calHr, timeSec);
+  const speedKmh = (distM / timeSec) * 3.6;
+  const pacePerMeter = splitSec / 500;
+  return { timeSec, distM, splitSec, watts, calHr, totalCal, speedKmh, pacePerMeter };
+}
+
+function calcFromTimeAndDistance(timeSec, distM) {
+  const splitSec = splitFromTimeAndDistance(timeSec, distM);
+  const watts = wattsFromSplit(splitSec);
+  const calHr = caloriesPerHourFromWatts(watts);
+  const totalCal = totalCaloriesFromCalHrAndTime(calHr, timeSec);
+  const speedKmh = (distM / timeSec) * 3.6;
+  const pacePerMeter = splitSec / 500;
+  return { timeSec, distM, splitSec, watts, calHr, totalCal, speedKmh, pacePerMeter };
+}
+
+function calcFromWatts(watts) {
+  const splitSec = splitFromWatts(watts);
+  const calHr = caloriesPerHourFromWatts(watts);
+  return { watts, splitSec, calHr };
+}
+
+function calcFromCalHr(calHr) {
+  const watts = (calHr - 300) / 4;
+  if (watts <= 0) return null;
+  const splitSec = splitFromWatts(watts);
+  return { calHr, watts, splitSec };
+}
+
+function calcFromTimeAndCal(timeSec, totalCal) {
+  const calHr = totalCal * 3600 / timeSec;
+  const watts = (calHr - 300) / 4;
+  if (watts <= 0) return null;
+  const splitSec = splitFromWatts(watts);
+  return { timeSec, totalCal, calHr, watts, splitSec };
+}
+
+// ── Bodyweight unit state ──
+
+let bwUnit = 'kg';
+
+function toggleBWUnit() {
+  bwUnit = bwUnit === 'kg' ? 'lb' : 'kg';
+  const toggle = document.getElementById('bwUnitToggle');
+  toggle.textContent = bwUnit;
+  toggle.classList.toggle('kg-active', bwUnit === 'kg');
+}
+
+// ── Error / results display ──
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  document.getElementById('resultsSection').classList.add('hidden');
+}
+
+function clearError() {
+  const el = document.getElementById('errorMsg');
+  el.textContent = '';
+  el.classList.add('hidden');
+}
+
+// ── Main calculate ──
+
+function calculate() {
+  clearError();
+
+  const distRaw    = document.getElementById('inpDist').value.trim();
+  const timeRaw    = document.getElementById('inpTime').value.trim();
+  const splitRaw   = document.getElementById('inpSplit').value.trim();
+  const wattsRaw   = document.getElementById('inpWatts').value.trim();
+  const calHrRaw   = document.getElementById('inpCalHr').value.trim();
+  const calRaw     = document.getElementById('inpCal').value.trim();
+  const bwRaw      = document.getElementById('inpBW').value.trim();
+
+  let dist = null, timeSec = null, splitSec = null, watts = null, calHr = null, totalCal = null, bwKg = null;
+
+  if (distRaw) {
+    dist = parseFloat(distRaw);
+    if (isNaN(dist) || dist <= 0) { showError('Distance must be greater than zero'); return; }
+  }
+
+  if (timeRaw) {
+    const r = parseTimeInput(timeRaw);
+    if (r === 'invalid') { showError('Time format must be mm:ss or hh:mm:ss'); return; }
+    timeSec = r;
+    if (timeSec <= 0) { showError('Time must be greater than zero'); return; }
+  }
+
+  if (splitRaw) {
+    const r = parseSplitInput(splitRaw);
+    if (r === 'invalid') { showError('Split format must be m:ss (e.g. 1:52)'); return; }
+    splitSec = r;
+  }
+
+  if (wattsRaw) {
+    watts = parseFloat(wattsRaw);
+    if (isNaN(watts) || watts <= 0) { showError('Watts must be greater than zero'); return; }
+  }
+
+  if (calHrRaw) {
+    calHr = parseFloat(calHrRaw);
+    if (isNaN(calHr) || calHr <= 0) { showError('Calories/hour must be greater than zero'); return; }
+  }
+
+  if (calRaw) {
+    totalCal = parseFloat(calRaw);
+    if (isNaN(totalCal) || totalCal <= 0) { showError('Calories must be greater than zero'); return; }
+  }
+
+  if (bwRaw) {
+    const bwVal = parseFloat(bwRaw);
+    if (isNaN(bwVal) || bwVal <= 0) { showError('Bodyweight must be greater than zero'); return; }
+    bwKg = bwUnit === 'lb' ? bwVal / 2.20462 : bwVal;
+  }
+
+  // Determine calculation path
+  let result = null;
+
+  if (dist !== null && splitSec !== null) {
+    // Path 1: Distance + Split
+    result = calcFromDistanceAndSplit(dist, splitSec);
+  } else if (timeSec !== null && dist !== null) {
+    // Path 2: Time + Distance
+    result = calcFromTimeAndDistance(timeSec, dist);
+  } else if (watts !== null && dist === null && timeSec === null && splitSec === null && calHr === null && totalCal === null) {
+    // Path 3: Watts only
+    result = calcFromWatts(watts);
+  } else if (calHr !== null && dist === null && timeSec === null && splitSec === null && watts === null && totalCal === null) {
+    // Path 4: Cal/hour only
+    result = calcFromCalHr(calHr);
+    if (!result) { showError('Calories/hour is too low — results in zero or negative watts'); return; }
+  } else if (timeSec !== null && totalCal !== null && dist === null && splitSec === null && watts === null && calHr === null) {
+    // Path 5: Time + Calories
+    result = calcFromTimeAndCal(timeSec, totalCal);
+    if (!result) { showError('Time + Calories combination results in zero or negative watts'); return; }
+  } else {
+    showError('Enter Distance + Split, Time + Distance, Watts only, Cal/hour only, or Time + Calories');
+    return;
+  }
+
+  // Add true metabolic calculations if bodyweight was provided
+  if (bwKg !== null && result.calHr !== undefined) {
+    result.trueCalHr = trueCalHrFromPmCalHr(result.calHr, bwKg);
+    if (result.timeSec !== undefined) {
+      result.trueTotalCal = totalCaloriesFromCalHrAndTime(result.trueCalHr, result.timeSec);
+    }
+  }
+
+  displayResults(result);
+}
+
+function displayResults(r) {
+  const perfGrid        = document.getElementById('perfGrid');
+  const metaGrid        = document.getElementById('metaGrid');
+  const metaGroupTitle  = document.getElementById('metaGroupTitle');
+  const metaNote        = document.getElementById('metaNote');
+  const resultsSection  = document.getElementById('resultsSection');
+
+  // Build performance result cards
+  const perfCards = [];
+
+  if (r.timeSec !== undefined) {
+    perfCards.push({ label: 'Time', value: formatTime(r.timeSec), unit: '', highlight: false });
+  }
+  if (r.distM !== undefined) {
+    perfCards.push({ label: 'Distance', value: Math.round(r.distM).toLocaleString(), unit: 'm', highlight: false });
+  }
+  if (r.splitSec !== undefined) {
+    perfCards.push({ label: 'Split /500m', value: formatSplit(r.splitSec), unit: '', highlight: true });
+  }
+  if (r.watts !== undefined) {
+    perfCards.push({ label: 'Watts', value: Math.round(r.watts), unit: 'W', highlight: true });
+  }
+  if (r.calHr !== undefined) {
+    perfCards.push({ label: 'Cal / hour', value: Math.round(r.calHr), unit: 'cal/hr', highlight: false });
+  }
+  if (r.totalCal !== undefined) {
+    perfCards.push({ label: 'Total Calories', value: (Math.round(r.totalCal * 10) / 10).toFixed(1), unit: 'cal', highlight: false });
+  }
+  if (r.speedKmh !== undefined) {
+    perfCards.push({ label: 'Speed', value: r.speedKmh.toFixed(1), unit: 'km/h', highlight: false });
+  }
+  if (r.pacePerMeter !== undefined) {
+    perfCards.push({ label: 'Pace / meter', value: r.pacePerMeter.toFixed(3), unit: 's/m', highlight: false });
+  }
+
+  perfGrid.innerHTML = perfCards.map(function(c) {
+    return '<div class="result-card' + (c.highlight ? ' highlight' : '') + '">' +
+      '<div class="result-label">' + c.label + '</div>' +
+      '<div class="result-value">' + c.value + (c.unit ? ' <span class="result-unit">' + c.unit + '</span>' : '') + '</div>' +
+      '</div>';
+  }).join('');
+
+  // Metabolic results
+  if (r.trueCalHr !== undefined) {
+    const metaCards = [
+      { label: 'True Cal / hour', value: Math.round(r.trueCalHr) + ' <span class="result-unit">cal/hr</span>' }
+    ];
+    if (r.trueTotalCal !== undefined) {
+      metaCards.push({ label: 'True Total Cal', value: (Math.round(r.trueTotalCal * 10) / 10).toFixed(1) + ' <span class="result-unit">cal</span>' });
+    }
+
+    metaGrid.innerHTML = metaCards.map(function(c) {
+      return '<div class="result-card metabolic">' +
+        '<div class="result-label">' + c.label + '</div>' +
+        '<div class="result-value">' + c.value + '</div>' +
+        '</div>';
+    }).join('');
+
+    metaGroupTitle.classList.remove('hidden');
+    metaGrid.classList.remove('hidden');
+    metaNote.classList.remove('hidden');
+  } else {
+    metaGroupTitle.classList.add('hidden');
+    metaGrid.classList.add('hidden');
+    metaNote.classList.add('hidden');
+  }
+
+  resultsSection.classList.remove('hidden');
+
+  // Scroll results into view
+  resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Reset ──
+
+function resetForm() {
+  ['inpDist', 'inpTime', 'inpSplit', 'inpWatts', 'inpCalHr', 'inpCal', 'inpBW'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  bwUnit = 'kg';
+  var toggle = document.getElementById('bwUnitToggle');
+  toggle.textContent = 'kg';
+  toggle.classList.add('kg-active');
+  clearError();
+  document.getElementById('resultsSection').classList.add('hidden');
+}
+
+// ── Service Worker Registration ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function() {});
+}
+</script>
+</body>
+</html>
