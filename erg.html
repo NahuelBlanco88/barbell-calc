@@ -488,20 +488,32 @@ function splitFromWatts(watts) {
   return pacePerMeter * 500;
 }
 
-function wattsFromCalHr(calHr) {
-  const multiplier = machineType === 'bike' ? 2 : 4;
-  return (calHr - 300) / multiplier;
-}
+// Concept2 calorie formula (all three machines use the same constants):
+//   25% mechanical efficiency → multiply watts by 4 to get gross metabolic rate
+//   Unit conversion: 1 W = 3600 J/hr ÷ 4184 J/kcal = 0.8604 kcal/hr
+//   Metabolic base: +300 kcal/hr (calibrated for a ~79.5 kg / 175 lb person)
+//   Combined: Cal/hr = watts × (4 × 0.8604) + 300 = watts × 3.4416 + 300
+//
+// The BikeErg uses the SAME formula — no different multiplier.
+// (Bike calories read high vs cycling apps because those apps use a more
+//  accurate cycling efficiency model; the Concept2 PM does not differentiate.)
+const C2_CAL_FACTOR = 4 * 3600 / 4184; // ≈ 3.4416
 
 function caloriesPerHourFromWatts(watts) {
-  const multiplier = machineType === 'bike' ? 2 : 4;
-  return watts * multiplier + 300;
+  return watts * C2_CAL_FACTOR + 300;
 }
 
+function wattsFromCalHr(calHr) {
+  return (calHr - 300) / C2_CAL_FACTOR;
+}
+
+// Weight-adjusted true metabolic Cal/hr (same formula for all machines).
+// Replaces the fixed 300 kcal/hr BMR (calibrated for 175 lb) with one
+// scaled to the user's actual bodyweight.
+// Source: Concept2 weight adjustment calculator.
 function trueCalHrFromPmCalHr(pmCalHr, bodyweightKg) {
   const bodyweightLb = bodyweightKg * 2.20462;
-  const bwFactor = machineType === 'bike' ? 1.5 : 1.714;
-  return pmCalHr - 300 + (bwFactor * bodyweightLb);
+  return pmCalHr - 300 + (1.714 * bodyweightLb);
 }
 
 function totalCalFromCalHrAndTime(calHr, timeSec) {
