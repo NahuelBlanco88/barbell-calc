@@ -551,7 +551,7 @@ function solve(D, T, P, W, C, TC) {
   let intensity = null; // internal pace per 500m (seconds)
   let timeSec = null;
 
-  // Step 1: resolve intensity from any Group A input
+  // Resolve intensity from any Group A input (Pace, Watts, or Cal/hr)
   if (P != null) {
     intensity = P;
   } else if (W != null) {
@@ -562,31 +562,41 @@ function solve(D, T, P, W, C, TC) {
     intensity = splitFromWatts(w);
   }
 
-  // Step 2: resolve time from Group B inputs (some paths need intensity)
-  if (T != null) {
-    timeSec = T;
-  } else if (D != null && intensity != null) {
-    timeSec = D * intensity / 500;
-  } else if (TC != null && intensity != null) {
-    const calHr = caloriesPerHourFromWatts(wattsFromSplit(intensity));
-    timeSec = TC * 3600 / calHr;
-  }
+  if (intensity != null) {
+    // Intensity is known. Exactly one Group B input (Time / Distance / Total Cal)
+    // is needed to complete the solve. Reject if more than one is present —
+    // silently preferring T over D would produce wrong distance output when a
+    // stale time value is left in the form alongside a fresh Distance + Pace entry.
+    const durationInputs = [T != null, D != null, TC != null].filter(Boolean).length;
+    if (durationInputs > 1) {
+      return { error: 'Clear all but one of Time, Distance, or Calories — only one is needed when Pace, Watts, or Cal/hr is set' };
+    }
 
-  // Step 3: special paths that derive intensity from two Group B inputs
-  if (intensity == null) {
+    if (T != null) {
+      timeSec = T;
+    } else if (D != null) {
+      timeSec = D * intensity / 500;
+    } else if (TC != null) {
+      const calHr = caloriesPerHourFromWatts(wattsFromSplit(intensity));
+      timeSec = TC * 3600 / calHr;
+    }
+    // else: intensity only — timeSec stays null, partial result returned below
+
+  } else {
+    // No intensity input — derive it from two Group B inputs
     if (T != null && D != null) {
-      // Time + Distance: classic erg scenario
+      // Time + Distance: the classic erg finish-line scenario
       intensity = T * 500 / D;
       timeSec = T;
     } else if (T != null && TC != null) {
-      // Time + Total Calories: work backwards through cal rate → watts → pace
+      // Time + Total Calories: back-calculate cal rate → watts → pace
       const calHr = TC * 3600 / T;
       const w = wattsFromCalHr(calHr);
       if (w <= 0) return { error: 'Time + Calories gives zero or negative watts' };
       intensity = splitFromWatts(w);
       timeSec = T;
     } else if (D != null && TC != null) {
-      // Distance + Total Calories: underdetermined without intensity
+      // Distance + Total Calories: analytically underdetermined without intensity
       return { error: 'Distance + Total Calories needs an intensity input too — add Pace, Watts, or Cal/hr' };
     } else {
       return { error: 'insufficient' };
