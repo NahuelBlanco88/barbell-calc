@@ -9,109 +9,8 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>1RM Calculator – WOD Tools</title>
+<link rel="stylesheet" href="shared.css">
 <style>
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-:root {
-  --bg: #0a0a0f;
-  --surface: #16161e;
-  --surface2: #1e1e2a;
-  --border: #2a2a3a;
-  --text: #e8e8f0;
-  --text-dim: #8888a0;
-  --accent: #6c7aff;
-  --accent-glow: rgba(108, 122, 255, 0.15);
-
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
-
-body {
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-/* === TOP NAV === */
-.top-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.nav-brand {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.3px;
-  flex-shrink: 0;
-}
-
-.nav-links {
-  display: flex;
-  gap: 2px;
-}
-
-.nav-link {
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-dim);
-  text-decoration: none;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.nav-link.active {
-  color: var(--accent);
-  background: var(--accent-glow);
-}
-
-.nav-link:active {
-  opacity: 0.7;
-}
-
-/* === SCROLL AREA === */
-.scroll-area {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 4px 16px 16px;
-}
-
-/* === SECTION LABEL === */
-.section-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-dim);
-  margin: 20px 0 8px;
-}
-
-.section-label:first-child {
-  margin-top: 8px;
-}
-
 /* === INPUT === */
 .input-row {
   display: flex;
@@ -295,9 +194,9 @@ body {
   <!-- Result Display -->
   <div class="result-display">
     <span class="result-weight empty" id="resultWeight">—</span>
-    <span class="result-unit" id="resultUnit" style="visibility:hidden">kg</span>
+    <span class="result-unit hidden" id="resultUnit">kg</span>
     <div class="result-label">Estimated 1RM</div>
-    <div class="result-formula">Epley: weight × (1 + reps ÷ 30), rounded to 0.5 kg</div>
+    <div class="result-formula hidden" id="resultFormula">Epley: weight × (1 + reps ÷ 30), rounded to 0.5 kg</div>
   </div>
 
   <!-- Use as 1RM -->
@@ -343,7 +242,7 @@ function calculate() {
   if (isNaN(w) || w <= 0) {
     resultWeightEl.textContent = '—';
     resultWeightEl.classList.add('empty');
-    resultUnitEl.style.visibility = 'hidden';
+    resultUnitEl.classList.add('hidden');
     useBtn.disabled = true;
     estimated1RM = null;
     return;
@@ -352,7 +251,8 @@ function calculate() {
   estimated1RM = roundHalf(w * (1 + selectedReps / 30));
   resultWeightEl.textContent = estimated1RM;
   resultWeightEl.classList.remove('empty');
-  resultUnitEl.style.visibility = 'visible';
+  resultUnitEl.classList.remove('hidden');
+  document.getElementById('resultFormula').classList.remove('hidden');
   useBtn.disabled = false;
 }
 
