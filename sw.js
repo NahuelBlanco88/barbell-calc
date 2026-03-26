@@ -1,10 +1,11 @@
-const CACHE_NAME = 'barbell-calc-v9';
+const CACHE_NAME = 'barbell-calc-v10';
 const ASSETS = [
   '/barbell-calc/',
   '/barbell-calc/index.html',
   '/barbell-calc/erg.html',
   '/barbell-calc/percent.html',
   '/barbell-calc/onerm.html',
+  '/barbell-calc/shared.css',
   '/barbell-calc/manifest.json',
   '/barbell-calc/icon-192.png',
   '/barbell-calc/icon-512.png'
